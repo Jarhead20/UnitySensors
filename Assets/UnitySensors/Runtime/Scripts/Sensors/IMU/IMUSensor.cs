@@ -28,6 +28,9 @@ namespace UnitySensors.Sensor.IMU
         private Vector3 _velocity_last;
         private Quaternion _rotation_last;
 
+        private Quaternion _initialRotation; // To store the initial rotation
+        private Vector3 _initialPosition; // To store the initial position
+
         public Vector3 position { get => _position; }
         public Vector3 velocity { get => _velocity; }
         public Vector3 acceleration { get => _acceleration; }
@@ -36,6 +39,11 @@ namespace UnitySensors.Sensor.IMU
 
         public Vector3 localVelocity { get => _transform.InverseTransformDirection(_velocity); }
         public Vector3 localAcceleration { get => _transform.InverseTransformDirection(_acceleration.normalized) * _acceleration.magnitude; }
+
+        [SerializeField]
+        private bool useGravity = true; // Option to enable or disable gravity
+        [SerializeField]
+        private bool useAbsolute = true; // Option to use absolute or relative rotation and acceleration
 
         private Vector3 _gravityDirection;
         private float _gravityMagnitude;
@@ -46,6 +54,14 @@ namespace UnitySensors.Sensor.IMU
             _transform = this.transform;
             _gravityDirection = Physics.gravity.normalized;
             _gravityMagnitude = Physics.gravity.magnitude;
+
+            // Store the initial rotation and position
+            _initialRotation = _transform.rotation;
+            _initialPosition = _transform.position;
+
+            _position_last = _initialPosition;
+            _velocity_last = Vector3.zero;
+            _rotation_last = Quaternion.identity;
         }
 
         protected override void Update()
@@ -55,9 +71,27 @@ namespace UnitySensors.Sensor.IMU
             _position_tmp = _transform.position;
             _velocity_tmp = (_position_tmp - _position_last) / dt;
             _acceleration_tmp = (_velocity_tmp - _velocity_last) / dt;
-            _acceleration_tmp -= _transform.InverseTransformDirection(_gravityDirection) * _gravityMagnitude;
+
+            // Apply gravity in the correct axis (typically downward along the y-axis) if gravity is enabled
+            if (useGravity)
+            {
+                _acceleration_tmp += _gravityDirection * _gravityMagnitude;
+            }
+
+            // Adjust acceleration based on absolute or relative setting
+            if (!useAbsolute)
+            {
+                _acceleration_tmp = _transform.InverseTransformDirection(_acceleration_tmp);
+            }
 
             _rotation_tmp = _transform.rotation;
+
+            // Calculate relative rotation if useAbsolute is false
+            if (!useAbsolute)
+            {
+                _rotation_tmp = Quaternion.Inverse(_initialRotation) * _rotation_tmp;
+            }
+
             Quaternion rotation_delta = Quaternion.Inverse(_rotation_last) * _rotation_tmp;
             rotation_delta.ToAngleAxis(out float angle, out Vector3 axis);
             float angularSpeed = (angle * Mathf.Deg2Rad) / dt;
