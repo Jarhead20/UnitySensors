@@ -7,16 +7,16 @@ namespace UnitySensors.Sensor.Encoder
     {
         [SerializeField, ReadOnly]
         private float _totalRotations = 0f;
+        [SerializeField, ReadOnly]
+        private float _lastDelatRotation = 0f;
         
         public float totalRotations { get => _totalRotations; }
-        private float rotationsSinceLastCheck = 0f;
 
         private float lastRotation = 0f;
 
         protected override void Init()
         {
             _totalRotations = 0f;
-            rotationsSinceLastCheck = 0f;
         }
 
         protected override void UpdateSensor()
@@ -34,12 +34,10 @@ namespace UnitySensors.Sensor.Encoder
 
             // Calculate rotation delta
             float rotationDelta = CalculateRotationDelta(currentRotation, lastRotation);
+            _lastDelatRotation = rotationDelta;
 
             // Update total rotations
             _totalRotations += rotationDelta;
-
-            // Update rotations since last check
-            rotationsSinceLastCheck += rotationDelta;
 
             // Update last rotation
             lastRotation = currentRotation;
