@@ -47,11 +47,11 @@ namespace UnitySensors.Sensor.Encoder
             // Get the rotational speed in RPM
             float rpm = wheelCollider.rpm;
 
-            // Convert RPM to angular velocity in radians per second
-            float angularVelocity = rpm * 2 * Mathf.PI / 60f;
+            // Convert RPM to angular velocity in revolutions per second
+            float angularVelocity = rpm / 60.0f;
 
             // Calculate rotation delta in degrees
-            float rotationDelta = angularVelocity * Mathf.Rad2Deg * Time.deltaTime;
+            float rotationDelta = angularVelocity * Time.deltaTime;
 
             // Update total rotations
             _totalRotations += rotationDelta;
