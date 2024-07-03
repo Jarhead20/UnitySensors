@@ -7,15 +7,28 @@ namespace UnitySensors.Sensor.Encoder
     {
         [SerializeField, ReadOnly]
         private float _totalRotations = 0f;
-        [SerializeField, ReadOnly]
-        private float _lastDelatRotation = 0f;
-        
-        public float totalRotations { get => _totalRotations; }
 
-        private float lastRotation = 0f;
+        // Axis selection
+        public Axis axis = Axis.Z;
+        [SerializeField]
+        public enum Axis
+        {
+            X,
+            Y,
+            Z
+        }
+
+        private Rigidbody rb;
+
+        public float totalRotations { get => _totalRotations; }
 
         protected override void Init()
         {
+            rb = GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                Debug.LogError("No Rigidbody component found. Please add a Rigidbody component.");
+            }
             _totalRotations = 0f;
         }
 
@@ -29,41 +42,36 @@ namespace UnitySensors.Sensor.Encoder
 
         void UpdateRotation()
         {
-            // Get current rotation
-            float currentRotation = transform.localEulerAngles.z;
+            if (rb == null) return;
 
-            // Calculate rotation delta
-            float rotationDelta = CalculateRotationDelta(currentRotation, lastRotation);
-            _lastDelatRotation = rotationDelta;
+            // Get angular velocity around the selected axis
+            float angularVelocity = 0f;
+            switch (axis)
+            {
+                case Axis.X:
+                    angularVelocity = rb.angularVelocity.x;
+                    break;
+                case Axis.Y:
+                    angularVelocity = rb.angularVelocity.y;
+                    break;
+                case Axis.Z:
+                    angularVelocity = rb.angularVelocity.z;
+                    break;
+            }
+
+            // Calculate rotation delta in degrees
+            float rotationDelta = angularVelocity * Mathf.Rad2Deg * Time.deltaTime;
+
+            Debug.Log("Rotation delta: " + rotationDelta);
+            Debug.Log("Angular velocity: " + angularVelocity);
 
             // Update total rotations
             _totalRotations += rotationDelta;
-
-            // Update last rotation
-            lastRotation = currentRotation;
-        }
-
-        float CalculateRotationDelta(float currentRotation, float lastRotation)
-        {
-            // Calculate raw rotation delta
-            float rotationDelta = currentRotation - lastRotation;
-
-            // Handle wrap-around at -180/+180 degrees (or -π/+π radians)
-            if (rotationDelta > 180f)
-            {
-                rotationDelta -= 360f;
-            }
-            else if (rotationDelta < -180f)
-            {
-                rotationDelta += 360f;
-            }
-
-            return rotationDelta;
         }
 
         protected override void OnSensorDestroy()
         {
-            
+            // Cleanup code if needed
         }
     }
 }
