@@ -18,16 +18,16 @@ namespace UnitySensors.Sensor.Encoder
             Z
         }
 
-        private Rigidbody rb;
+        private WheelCollider wheelCollider;
 
         public float totalRotations { get => _totalRotations; }
 
         protected override void Init()
         {
-            rb = GetComponent<Rigidbody>();
-            if (rb == null)
+            wheelCollider = GetComponent<WheelCollider>();
+            if (wheelCollider == null)
             {
-                Debug.LogError("No Rigidbody component found. Please add a Rigidbody component.");
+                Debug.LogError("No WheelCollider component found. Please add a WheelCollider component.");
             }
             _totalRotations = 0f;
         }
@@ -42,31 +42,20 @@ namespace UnitySensors.Sensor.Encoder
 
         void UpdateRotation()
         {
-            if (rb == null) return;
+            if (wheelCollider == null) return;
 
-            // Get angular velocity around the selected axis
-            float angularVelocity = 0f;
-            switch (axis)
-            {
-                case Axis.X:
-                    angularVelocity = rb.angularVelocity.x;
-                    break;
-                case Axis.Y:
-                    angularVelocity = rb.angularVelocity.y;
-                    break;
-                case Axis.Z:
-                    angularVelocity = rb.angularVelocity.z;
-                    break;
-            }
+            // Get the rotational speed in RPM
+            float rpm = wheelCollider.rpm;
+
+            // Convert RPM to angular velocity in radians per second
+            float angularVelocity = rpm * 2 * Mathf.PI / 60f;
 
             // Calculate rotation delta in degrees
             float rotationDelta = angularVelocity * Mathf.Rad2Deg * Time.deltaTime;
 
-            Debug.Log("Rotation delta: " + rotationDelta);
-            Debug.Log("Angular velocity: " + angularVelocity);
-
             // Update total rotations
             _totalRotations += rotationDelta;
+
         }
 
         protected override void OnSensorDestroy()
