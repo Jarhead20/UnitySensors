@@ -8,15 +8,7 @@ namespace UnitySensors.Sensor.Encoder
         [SerializeField, ReadOnly]
         private float _totalRotations = 0f;
 
-        // Axis selection
-        public Axis axis = Axis.Z;
-        [SerializeField]
-        public enum Axis
-        {
-            X,
-            Y,
-            Z
-        }
+
 
         private WheelCollider wheelCollider;
 
@@ -51,7 +43,7 @@ namespace UnitySensors.Sensor.Encoder
             float angularVelocity = rpm / 60.0f;
 
             // Calculate rotation delta in degrees
-            float rotationDelta = angularVelocity * Time.deltaTime;
+            float rotationDelta = angularVelocity * dt;
 
             // Update total rotations
             _totalRotations += rotationDelta;
