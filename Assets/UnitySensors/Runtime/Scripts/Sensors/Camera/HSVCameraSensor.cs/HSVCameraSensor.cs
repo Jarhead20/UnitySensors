@@ -26,14 +26,14 @@ namespace UnitySensors.Sensor.Camera {
         {
             // Get the RGB image from the unity camera
 
-            Texture2D rgbImage = texture;
+            // Texture2D rgbImage = texture;
 
             // Filter the image based on HSV values
-            for (int y = 0; y < rgbImage.height; y++)
+            for (int y = 0; y < texture.height; y++)
             {
-                for (int x = 0; x < rgbImage.width; x++)
+                for (int x = 0; x < texture.width; x++)
                 {
-                    Color pixelColor = rgbImage.GetPixel(x, y);
+                    Color pixelColor = texture.GetPixel(x, y);
                     float h;
                     float s;
                     float v;
@@ -44,22 +44,18 @@ namespace UnitySensors.Sensor.Camera {
                         s >= saturationMin && s <= saturationMax &&
                         v >= valueMin && v <= valueMax)
                     {
-                        filteredImage.SetPixel(x, y, Color.clear);
+                        texture.SetPixel(x, y, Color.clear);
                     }
                     else
                     {
-                        filteredImage.SetPixel(x, y, b);
+                        texture.SetPixel(x, y, b);
                     }
                 }
             }
 
             // Apply the changes to the filtered image texture
-            filteredImage.Apply();
-        }
+            texture.Apply();
 
-        public Texture2D GetFilteredImage()
-        {
-            return filteredImage;
         }
     }
 }
