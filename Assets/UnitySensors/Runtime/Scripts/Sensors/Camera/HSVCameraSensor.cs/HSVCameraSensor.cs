@@ -11,75 +11,24 @@ namespace UnitySensors.Sensor.Camera {
         [SerializeField] private float valueMin;
         [SerializeField] private float valueMax;
 
-        private Texture2D filteredImage;
-
-        public Texture2D mask { get => filteredImage; }
-
         private Material mat;
-
-        // private Color b = new Color(0, 0, 0, 0);
 
         protected override void Init()
         {
             base.Init();
             mat = new Material(Shader.Find("UnitySensors/HSVFilter"));
-            filteredImage = new Texture2D(resolution.x, resolution.y, TextureFormat.Alpha8, false);
-        }
-
-        protected override void UpdateSensor()
-        {
-            // Get the RGB image from the unity camera
-            if (!LoadTexture()) return;
-            if (onSensorUpdated != null)
-                onSensorUpdated.Invoke();
-
-
-            
-        
-            // Texture2D rgbImage = texture; 
-            // Graphics.Blit (texture, destination, material);
-
-
-            // // Filter the image based on HSV values
-            // for (int y = 0; y < rgbImage.height; y++)
-            // {
-            //     for (int x = 0; x < rgbImage.width; x++)
-            //     {
-            //         Color pixelColor = rgbImage.GetPixel(x, y);
-            //         float h;
-            //         float s;
-            //         float v;
-            //         Color.RGBToHSV(pixelColor, out h, out s, out v);
-
-            //         // Check if the pixel falls within the specified HSV range
-            //         if (h >= hueMin && h <= hueMax &&
-            //             s >= saturationMin && s <= saturationMax &&
-            //             v >= valueMin && v <= valueMax)
-            //         {
-            //             filteredImage.SetPixel(x, y, Color.white);
-            //         }
-            //         else
-            //         {
-            //             filteredImage.SetPixel(x, y, Color.black);
-            //         }
-            //     }
-            // }
-
-            // // Apply the changes to the filtered image texture
-            // filteredImage.Apply();
-            
-
+            // filteredImage = new Texture2D(resolution.x, resolution.y, TextureFormat.Alpha8, false);
         }
 
         private void OnRenderImage(RenderTexture source, RenderTexture dest)
         {
 
-            mat.SetFloat("_HueMin", hueMin);
-            mat.SetFloat("_HueMax", hueMax);
-            mat.SetFloat("_SaturationMin", saturationMin);
-            mat.SetFloat("_SaturationMax", saturationMax);
-            mat.SetFloat("_ValueMin", valueMin);
-            mat.SetFloat("_ValueMax", valueMax);
+            mat.SetFloat("_HueMin", (float)(hueMin/255.0));
+            mat.SetFloat("_HueMax", (float)(hueMax/255.0));
+            mat.SetFloat("_SaturationMin", (float)(saturationMin/255.0));
+            mat.SetFloat("_SaturationMax", (float)(saturationMax/255.0));
+            mat.SetFloat("_ValueMin", (float)(valueMin/255.0));
+            mat.SetFloat("_ValueMax", (float)(valueMax/255.0));
             Graphics.Blit(source, dest, mat);
         }
     }
