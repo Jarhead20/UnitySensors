@@ -9,6 +9,7 @@ Shader "UnitySensors/HSVFilter"
         _SatMax ("Saturation Max", Range(0, 1)) = 1.0
         _ValMin ("Value Min", Range(0, 1)) = 0.0
         _ValMax ("Value Max", Range(0, 1)) = 1.0
+        _NumFilters ("Number of Filters", Range(1, 3)) = 1
     }
     SubShader
     {
@@ -35,12 +36,13 @@ Shader "UnitySensors/HSVFilter"
             };
 
             sampler2D _MainTex;
-            float _HueMin;
-            float _HueMax;
-            float _SatMin;
-            float _SatMax;
-            float _ValMin;
-            float _ValMax;
+            float4 _HueMin;
+            float4 _HueMax;
+            float4 _SatMin;
+            float4 _SatMax;
+            float4 _ValMin;
+            float4 _ValMax;
+            int _NumFilters;
 
             v2f vert (appdata v)
             {
@@ -61,21 +63,32 @@ Shader "UnitySensors/HSVFilter"
                 return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
             }
 
+            bool InRange(float3 hsv, float3 minHSV, float3 maxHSV, float tolerance)
+            {
+                return hsv.x >= minHSV.x - tolerance && hsv.x <= maxHSV.x + tolerance &&
+                       hsv.y >= minHSV.y - tolerance && hsv.y <= maxHSV.y + tolerance &&
+                       hsv.z >= minHSV.z - tolerance && hsv.z <= maxHSV.z + tolerance;
+            }
+
             float4 frag (v2f i) : SV_Target
             {
                 float4 col = tex2D(_MainTex, i.uv);
                 float3 hsv = RGBToHSV(col.rgb);
 
-                if (hsv.x >= _HueMin && hsv.x <= _HueMax &&
-                    hsv.y >= _SatMin && hsv.y <= _SatMax &&
-                    hsv.z >= _ValMin && hsv.z <= _ValMax)
+                float tolerance = 0.01;
+                bool filterOut = false;
+
+                for (int j = 0; j < _NumFilters; ++j)
                 {
-                    return float4(1, 1, 1, 1);;
+                    if (InRange(hsv, float3(_HueMin[j], _SatMin[j], _ValMin[j]), 
+                                    float3(_HueMax[j], _SatMax[j], _ValMax[j]), tolerance))
+                    {
+                        filterOut = true;
+                        break;
+                    }
                 }
-                else
-                {
-                    return float4(0, 0, 0, 0); // Filter out
-                }
+
+                return filterOut ? float4(0, 0, 0, 0) : col;
             }
             ENDCG
         }
